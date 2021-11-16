@@ -15,7 +15,7 @@
 		#DEFINE NOTAS_MUSICALES_SALIDA_SPEAKER PORTB, 0
 	ENDIF
 
-; Los contadores notas_musicales_d1 y notas_musicales_d2 se declaran a partir de 0x189. Si se define otra
+; Los contadores notas_musicales_d1 y notas_musicales_d2 se declaran a partir de 0x190. Si se define otra
 ; posición, hay que asegurarse de que haya dos espacios libres consecutivos
 ; a partir de la dirección elegida
 	IFNDEF NOTAS_MUSICALES_ADDR_REG
@@ -30,14 +30,26 @@ NOTAS_MUSICALES_ADDR_REG EQU 0x190
 
 ir_banco_auxiliares MACRO
 	IF (NOTAS_MUSICALES_ADDR_REG & 0x100)
+		IFDEF DEPURAR_POR_SEPARADO
+			MESSG "RP1 = 1"
+		ENDIF
 		bsf STATUS, RP1
 	ELSE
+		IFDEF DEPURAR_POR_SEPARADO
+			MESSG "RP1 = 0"
+		ENDIF
 		bcf STATUS, RP1
 	ENDIF
 
 	IF (NOTAS_MUSICALES_ADDR_REG & 0x080)
+		IFDEF DEPURAR_POR_SEPARADO
+			MESSG "RP0 = 1"
+		ENDIF
 		bsf STATUS, RP0
 	ELSE
+		IFDEF DEPURAR_POR_SEPARADO
+			MESSG "RP0 = 0"
+		ENDIF
 		bcf STATUS, RP0
 	ENDIF
   ENDM
