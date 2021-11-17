@@ -1,9 +1,8 @@
 #include <16f877a.h>                      //Tipo de MicroControlador a utilizar
 #fuses HS,NOPROTECT,NOWDT,NOLVP, XT
-#device ADC=8
+#device ADC=10
 #use delay(clock=20000000)                //Frec. de Osc. 20Mhz
 #use rs232(baud=9600, xmit=PIN_C6, rcv=PIN_C7)
-#org 0x1F00, 0x1FFF void loader16F877(void) {} 
 #include <stdio.h>
 
 #define LCD_RS_PIN      PIN_D7
@@ -70,8 +69,9 @@ void main()
    printf("Bienvenid@s");
    for (;;)
    {
-   
-      printf(" Todos los bits encendidos \n\r");
+      set_adc_channel(0);
+      delay_us(10);
+      printf("Que pasa");
       get_string(comando_usuario, 31);
       printf(lcd_putc, "\fEl comando es: %s\n", comando_usuario);
       for (i = 0; comando_usuario[i] != '\0'; i++)
