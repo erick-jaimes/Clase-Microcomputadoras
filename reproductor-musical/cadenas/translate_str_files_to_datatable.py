@@ -56,11 +56,11 @@ def generate_table(index, str_filename, dest_file):
     bcf STATUS, RP0 ; Banco 0
 
     addlw str{index}__table
-    movwf cadenas__temp
-    rlf cadenas__zero, W
+    movwf (CADENAS__temp & 0x3F)
+    rlf (CADENAS__zero & 0x3F), W
     addlw HIGH(str{index}__table)
     movwf PCLATH
-    movf cadenas__temp, W
+    movf (CADENAS__temp & 0x3F), W
     movwf PCL
 str{index}__table''', file=dest_file)
 

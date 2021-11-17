@@ -26,7 +26,7 @@ inicio:
 
 ciclo:
 	movf nota, W
-	call sonar_nota_musical
+	call NOTASMUSIC__sonarW
 	decfsz contador, F
 	goto ciclo
 	incf nota, F ; Aumenta cada que contador se hace cero

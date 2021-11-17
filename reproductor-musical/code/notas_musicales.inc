@@ -6,30 +6,31 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Valores por defecto de la cabecera
 ;_____________________
-; Especifican que pines y que registros se usarán en caso de no especificarse
-; otro valor antes de incluir este archivo
+; Especifican que pines y que dirección se usará para los registros que se usan
+; en los algoritmos. Estos valores se pueden sobreescribir mediante #define o
+; EQU (según sea el caso) antes de incluir este archivo.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; El sonido sale por PORTB<0>
-	IFNDEF NOTAS_MUSICALES_SALIDA_SPEAKER
-		#DEFINE NOTAS_MUSICALES_SALIDA_SPEAKER PORTB, 0
+	IFNDEF NOTASMUSIC__SALIDA_SPEAKER
+		#DEFINE NOTASMUSIC__SALIDA_SPEAKER PORTB, 0
 	ENDIF
 
-; Los contadores notas_musicales_d1 y notas_musicales_d2 se declaran a partir de 0x190. Si se define otra
+; Los contadores NOTASMUSIC__d1 y NOTASMUSIC__d2 se declaran a partir de 0x190. Si se define otra
 ; posición, hay que asegurarse de que haya dos espacios libres consecutivos
 ; a partir de la dirección elegida
-	IFNDEF NOTAS_MUSICALES_ADDR_REG
-NOTAS_MUSICALES_ADDR_REG EQU 0x190
+	IFNDEF NOTASMUSIC__DIR_VARS
+NOTASMUSIC__DIR_VARS EQU 0x190
 	ENDIF
 
-	CBLOCK NOTAS_MUSICALES_ADDR_REG
-		notas_musicales_d1
-		notas_musicales_d2
-		nota_musical_actual
+	CBLOCK NOTASMUSIC__DIR_VARS
+		NOTASMUSIC__d1
+		NOTASMUSIC__d2
+		NOTASMUSIC__nota
 	ENDC
 
-ir_banco_auxiliares MACRO
-	IF (NOTAS_MUSICALES_ADDR_REG & 0x100)
+NOTASMUSIC__ir_banco_auxiliares MACRO
+	IF (NOTASMUSIC__DIR_VARS & 0x100)
 		IFDEF DEPURAR_POR_SEPARADO
 			MESSG "RP1 = 1"
 		ENDIF
@@ -41,7 +42,7 @@ ir_banco_auxiliares MACRO
 		bcf STATUS, RP1
 	ENDIF
 
-	IF (NOTAS_MUSICALES_ADDR_REG & 0x080)
+	IF (NOTASMUSIC__DIR_VARS & 0x080)
 		IFDEF DEPURAR_POR_SEPARADO
 			MESSG "RP0 = 1"
 		ENDIF
@@ -52,11 +53,6 @@ ir_banco_auxiliares MACRO
 		ENDIF
 		bcf STATUS, RP0
 	ENDIF
-  ENDM
-
-ir_banco_0 MACRO
-	bcf STATUS, RP1
-	bcf STATUS, RP0
   ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -77,71 +73,75 @@ ir_banco_0 MACRO
 ;  W = 5  ====> La
 ;  W = 6  ====> Si
 ;  W = 7  ====> Ninguna nota
-sonar_nota_musical
+NOTASMUSIC__sonarW
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+
 	; Primero se manda un valor alto
-	ir_banco_0
-	bsf NOTAS_MUSICALES_SALIDA_SPEAKER
+	bsf NOTASMUSIC__SALIDA_SPEAKER
 
 	; El retardo se elige mediante un salto indexado.
 	; Limitamos los valores de W para el caso en que se
 	; reciba algo mayor a 7
-	ir_banco_auxiliares
+	NOTASMUSIC__ir_banco_auxiliares
 	andlw B'111'
-	movwf (nota_musical_actual & 0x7F) ; Guardamos el valor de W
+	movwf (NOTASMUSIC__nota & 0x7F) ; Guardamos el valor de W
 	; Multiplicamos el valor de W por 2, ya que cada
 	; opción del salto indexado está compuesta por dos
 	; instrucciones. Guardamos el resultado para en F para
 	; usarlo luego, aunque también lo requerimos en W
-	addwf (nota_musical_actual & 0x7F), F
-	movf (nota_musical_actual & 0x7F), W
+	addwf (NOTASMUSIC__nota & 0x7F), F
+	movf (NOTASMUSIC__nota & 0x7F), W
 
 	addwf PCL, F
-	call retardo_do4
-	goto segunda_mitad_nota
-	call retardo_re4
-	goto segunda_mitad_nota
-	call retardo_mi4
-	goto segunda_mitad_nota
-	call retardo_fa4
-	goto segunda_mitad_nota
-	call retardo_sol4
-	goto segunda_mitad_nota
-	call retardo_la4
-	goto segunda_mitad_nota
-	call retardo_si4
-	goto segunda_mitad_nota
+	call NOTASMUSIC__retardo_do4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_re4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_mi4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_fa4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_sol4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_la4
+	goto NOTASMUSIC__segunda_mitad
+	call NOTASMUSIC__retardo_si4
+	goto NOTASMUSIC__segunda_mitad
 	nop
 	nop
 
-segunda_mitad_nota
+NOTASMUSIC__segunda_mitad
 
 	; Ahora se manda el valor bajo
-	ir_banco_0
-	bcf NOTAS_MUSICALES_SALIDA_SPEAKER
+    bcf STATUS, RP1
+    bcf STATUS, RP0
+	bcf NOTASMUSIC__SALIDA_SPEAKER
 
 	; Segundo retardo
-	ir_banco_auxiliares
-	movf (nota_musical_actual & 0x7F), W
+	NOTASMUSIC__ir_banco_auxiliares
+	movf (NOTASMUSIC__nota & 0x7F), W
 
 	addwf PCL, F
-	call retardo_do4
-	goto salir_rutina_notas
-	call retardo_re4
-	goto salir_rutina_notas
-	call retardo_mi4
-	goto salir_rutina_notas
-	call retardo_fa4
-	goto salir_rutina_notas
-	call retardo_sol4
-	goto salir_rutina_notas
-	call retardo_la4
-	goto salir_rutina_notas
-	call retardo_si4
+	call NOTASMUSIC__retardo_do4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_re4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_mi4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_fa4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_sol4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_la4
+	goto NOTASMUSIC__salir
+	call NOTASMUSIC__retardo_si4
 	nop
 	nop
 
-salir_rutina_notas
-	ir_banco_0
+NOTASMUSIC__salir
+    bcf STATUS, RP1
+    bcf STATUS, RP0
 	return
 
 ; Frecuencias necesarias para los sonidos de la octava central
@@ -159,18 +159,18 @@ salir_rutina_notas
 
 ;---------------------------------------
 ; Retardo auxiliar, adecuado para hacer sonar la nota 'DO'
-retardo_do4
-	ir_banco_auxiliares
+NOTASMUSIC__retardo_do4
+	NOTASMUSIC__ir_banco_auxiliares
 			;9548 cycles
 	movlw	0x75
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x08
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_do4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_do4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_do4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_do4_0
 
 			;4 cycles
 	goto	$+1
@@ -180,17 +180,17 @@ retardo_do4_0
 	return
 
 ;---------------------------------------
-retardo_re4
+NOTASMUSIC__retardo_re4
 			;8508 cycles
 	movlw	0xA5
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x07
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_re4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_re4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_re4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_re4_0
 
 			;1 cycle
 	nop
@@ -199,17 +199,17 @@ retardo_re4_0
 	return
 
 ;---------------------------------------
-retardo_mi4
+NOTASMUSIC__retardo_mi4
 			;7578 cycles
 	movlw	0xEB
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x06
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_mi4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_mi4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_mi4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_mi4_0
 
 			;2 cycles
 	goto	$+1
@@ -219,17 +219,17 @@ retardo_mi4_0
 
 
 ;---------------------------------------
-retardo_fa4
+NOTASMUSIC__retardo_fa4
 			;7153 cycles
 	movlw	0x96
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x06
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_fa4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_fa4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_fa4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_fa4_0
 
 			;2 cycles
 	goto	$+1
@@ -238,17 +238,17 @@ retardo_fa4_0
 	return
 
 ;---------------------------------------
-retardo_sol4
+NOTASMUSIC__retardo_sol4
 			;6373 cycles
 	movlw	0xFA
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x05
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_sol4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_sol4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_sol4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_sol4_0
 
 			;1 cycle
 	nop
@@ -257,33 +257,33 @@ retardo_sol4_0
 	return
 
 ;---------------------------------------
-retardo_la4
+NOTASMUSIC__retardo_la4
 			;5678 cycles
 	movlw	0x6F
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x05
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_la4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_la4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_la4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_la4_0
 
 			;4 cycles (including call)
 	return
 
 ;---------------------------------------
-retardo_si4
+NOTASMUSIC__retardo_si4
 			;5058 cycles
 	movlw	0xF3
-	movwf	(notas_musicales_d1 & 0x7F)
+	movwf	(NOTASMUSIC__d1 & 0x7F)
 	movlw	0x04
-	movwf	(notas_musicales_d2 & 0x7F)
-retardo_si4_0
-	decfsz	(notas_musicales_d1 & 0x7F), f
+	movwf	(NOTASMUSIC__d2 & 0x7F)
+NOTASMUSIC__retardo_si4_0
+	decfsz	(NOTASMUSIC__d1 & 0x7F), f
 	goto	$+2
-	decfsz	(notas_musicales_d2 & 0x7F), f
-	goto	retardo_si4_0
+	decfsz	(NOTASMUSIC__d2 & 0x7F), f
+	goto	NOTASMUSIC__retardo_si4_0
 
 			;4 cycles (including call)
 	return
