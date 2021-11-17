@@ -1,0 +1,5 @@
+Probando la transmisi¢n serial
+______________________________
+
+Tabla de caracteres que usa la terminal actual:
+
