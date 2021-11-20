@@ -26,6 +26,8 @@ LCD_CaracteresPorLinea EQU .16
 LCD_Inicializa
 	bcf STATUS, RP1
 	bsf STATUS, RP0 		; Banco 1, donde se configuran los TRIS
+
+	; Se configuran los pines necesarios como salida
 	bcf LCD_PinRS
 	bcf LCD_PinEnable
 	bcf LCD_PinRW
@@ -37,24 +39,16 @@ LCD_Inicializa
 							; que se va a escribir en el LCD
 	bcf LCD_PinEnable 		; Impide funcionamiento del LCD poniendo E=0
 	bcf LCD_PinRS	 		; Activa el modo Comando poniendo RS=0
-	call Retardo_20ms
-	movlw b'00110000'
-	call LCD_EscribeLCD		; Escribe el dato en el LCD
-	call Retardo_5ms
-	movlw b'00110000'
-	call LCD_EscribeLCD
-	call Retardo_200micros
-	movlw b'00110000'
-	call LCD_EscribeLCD
-	
-	movlw b'00110000' 		; Interface  de 8 bits
-	call LCD_EscribeLCD
 
-; Ahora configura el resto de los parámetros:
-	call LCD_2Lineas8Bits5x7 	; LCD de 2 líneas y caracteres de 5x7 puntos
-	call LCD_Borra				; Pantalla encendida y limpia. Cursor al principio
-	call LCD_CursorOFF			; de la línea 1. Cursor apagado.
-	call LCD_CursorIncr			; Cursor en modo incrementar.
+	call Retardo_2ms
+	movlw 0x38				; 8 bits
+	call LCD_EscribeLCD
+	movlw 0x01				; Clear screen
+	call LCD_EscribeLCD
+	movlw 0x06				; Curosr incremental
+	call LCD_EscribeLCD
+	movlw 0x0E				; Display and cursor on
+	call LCD_EscribeLCD
 	return
 
 ;---------------------------------------------------------
@@ -66,40 +60,17 @@ LCD_EscribeLCD
 	movwf LCD_BUSDatos			; Recupera el dato a enviar
 	bsf LCD_PinEnable			; Permite funcionamiento del LCD mediante un pequeño
 	bcf LCD_PinEnable			; pulso y termina impidiendo el funcionamiento del LCD
+	call Retardo_50micros
 	return
 
 ;---------------------------------------------------------
 ; Subrutinas variadas para el control del módulo LCD
-LCD_CursorIncr					; Cursor en modo incrementar
-	movlw b'00000110'
-	goto LCD_EnviaComando
 LCD_Linea1						; Cursor al principio de la Línea 1
 	movlw b'10000000'			; Dirección 00h de la DDRAM
 	goto LCD_EnviaComando
 LCD_Linea2
 	movlw b'11000000'			; Dirección 40h de la DDRAM
 	goto LCD_EnviaComando
-LCD_PosicionLinea1				; Cursor a posición de la Línea 1, a partir de la
-	iorlw b'10000000'			; dirección 00h de la DDRAM más el valor del
-	goto LCD_EnviaComando		; registro W
-LCD_PosicionLinea2				; Cursor a posición de la Línea 2, a partir de la
-	iorlw b'11000000'			; dirección 40h de la DDRAM más el valor del
-	goto LCD_EnviaComando		; registro W
-LCD_OFF							; Pantalla apagada
-	movlw b'00001000'
-	goto LCD_EnviaComando
-LCD_CursorON					; Pantalla encendida y cursor encendido
-	movlw b'00001110'
-	goto LCD_EnviaComando
-LCD_CursorOFF					; Pantalla encendida, memoria DDRAM y pone el
-	movlw b'00001100'			; cursor a principio de la línea 1.
-	goto LCD_EnviaComando
-LCD_Borra						; Borra toda la pantalla,, memoria DDRAM y pone el
-	movlw b'00000001'			; cursor al principio de la línea 1.
-	goto LCD_EnviaComando
-LCD_2Lineas8Bits5x7				; Define la pantalla de líneas, con caracteres
-	movlw b'00101000'			; de 5x7 y conexión al PIC mediante bus de
-	goto LCD_EnviaComando		; 8 bits
 
 ;---------------------------------------------------------
 ; LCD_EnviaComando: Subrutina que envía W al LCD cuando este se encuentra en
@@ -121,30 +92,6 @@ LCD_Envia
 
 ;---------------------------------------------------------
 ; Subrutinas de retardo usadas
-Retardo_20ms
-    movlw 0xdc
-    movwf LCD_Retardo1
-    movlw 0x82
-    movwf LCD_Retardo2
-Retardo_20ms_0
-    decfsz LCD_Retardo1, 1
-    goto Retardo_20ms_0
-    decfsz LCD_Retardo2, 1
-    goto Retardo_20ms_0
-    nop
-    return
-
-Retardo_5ms
-    movlw 0x75
-    movwf LCD_Retardo1
-    movlw 0x21
-    movwf LCD_Retardo2
-Retardo_5ms_0
-    decfsz LCD_Retardo1, 1
-    goto Retardo_5ms_0
-    decfsz LCD_Retardo2, 1
-    goto Retardo_5ms_0
-    return
 
 Retardo_200micros
     movlw 0x49
