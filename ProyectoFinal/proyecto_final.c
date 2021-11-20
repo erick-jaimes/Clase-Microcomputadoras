@@ -55,6 +55,7 @@ void main()
    ///////////////////////////////
    output_high(PIN_C0);
    output_low(PIN_C1);
+   output_high(PIN_C3);
    ///////////////////////////////
    setup_adc_ports(AN0);
    setup_adc(ADC_CLOCK_INTERNAL);
@@ -72,7 +73,9 @@ void main()
 
       get_string(comando_usuario, 31);
       printf("\n\r");
-      printf(lcd_putc, "\fEl comando es: %s\n\r", comando_usuario);
+      printf("El comando es: %s\n\r", comando_usuario);
+      printf(lcd_putc, "\f%s", comando_usuario);
+      lcd_gotoxy(1, 2);
       for (i = 0; comando_usuario[i] != '\0'; i++)
       {
          comando_usuario[i] = tolower(comando_usuario[i]);
@@ -82,9 +85,8 @@ void main()
       if ( cadenas_iguales(comando_usuario, comando_sistema) )
       {
          temp = 0.488758 * read_adc();
-         printf("Temperatura = %2.2f [C]\n\r", temp);
-         lcd_gotoxy(1, 2);
-         printf(lcd_putc, "Temperatura = %2.2f [C]\n\r", temp);
+         printf("Temperatura = %2.2f [C]\n\r", temp);         
+         printf(lcd_putc, "temp = %2.2f [C]", temp);
          continue;
       }
 
@@ -92,8 +94,7 @@ void main()
       if ( cadenas_iguales(comando_usuario, comando_sistema) )
       {
          printf("Se enciende el motor\n\r");
-         lcd_gotoxy(1, 2);
-         printf(lcd_putc, "Se enciende el motor\n\r");
+         printf(lcd_putc, "Motor encendido");
          ajustaPWM(ciclo_trabajo);
          continue;
       }
@@ -102,8 +103,7 @@ void main()
       if ( cadenas_iguales(comando_usuario, comando_sistema) )
       {
          printf("Se apaga el motor\n\r");
-         lcd_gotoxy(1, 2);
-         printf(lcd_putc, "Se apaga el motor\n\r");
+         printf(lcd_putc, "Motor apagado");
          set_pwm1_duty(0);
          continue;
       }
@@ -112,8 +112,7 @@ void main()
       if ( cadenas_iguales(comando_usuario, comando_sistema) )
       {
          printf("Se encienden los leds\n\r");
-         lcd_gotoxy(1, 2);
-         printf(lcd_putc, "Se encienden los leds\n\r");
+         printf(lcd_putc, "Leds encendidos");
          output_b(0xFF);
          continue;
       }
@@ -122,8 +121,8 @@ void main()
       if ( cadenas_iguales(comando_usuario, comando_sistema) )
       {
          printf("Se apagan los leds\n\r");
-         lcd_gotoxy(1, 1);
-         printf(lcd_putc, "Se apagan los leds\n\r");
+         lcd_gotoxy(1, 2);
+         printf(lcd_putc, "Leds apagados");
          output_b(0x00);
          continue;
       }
@@ -133,9 +132,12 @@ void main()
       {
          ciclo_trabajo = atol(comando_usuario + 4);
          ajustaPWM(ciclo_trabajo);
+         printf("El ciclo de trabajo ahora es %ld\n\r", ciclo_trabajo);
+         printf(lcd_putc, "cdt= %ld", ciclo_trabajo);
          continue;
       }
 
+      printf(lcd_putc, "XXXXXXX F XXXXXX");
       printf("Comando no reconocido\n\r");
 
       delay_ms(10);
