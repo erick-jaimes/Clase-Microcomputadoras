@@ -60,7 +60,8 @@ CADENAS__configurar:
 
 ;---------------------------------------
 ; Macro para transmitir una tabla de datos ubicada
-; en la memoria programa
+; en la memoria programa por medio de la interfaz
+; serial
 CADENAS__label_num = 0
 CADENAS__transmitir MACRO tabla
 	CADENAS__ir_banco_auxiliares
