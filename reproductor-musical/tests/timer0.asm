@@ -8,6 +8,8 @@
 		contador1
 		contador2
 		salida
+		d1
+		d2
 	ENDC
 
   org 0
@@ -56,26 +58,37 @@ inicio:
 
 ciclo:
 	call leer_escalas
+	call retardo_10ms
 	goto ciclo
 
 leer_escalas:
 	bcf STATUS, RP1
 	bcf STATUS, RP0
 
+	; Sucedian errores extraños y después de muchos dolres de cabeza
+	; y depuración fue evidente que las dos operaciones para leer el valor
+	; del puerto B y C y escribirlos en escala2 y escala1 deben ser atómicas, en
+	; el sentido de que no deben ser interrumpidas por el timer hasta que ambas
+	; se completen.
+	; Debido a que no estoy seguro de cómo representar una operación atómica,
+	; símplemente voy a deshabilitar la interrupción durante este periodo y
+	; volveré a habilitarla después.
+	bcf INTCON, TMR0IE
 	movf PORTB, W
 	movwf escala2
 	movlw B'00011111'
 	andwf escala2, F
 	
 	incf escala2, F
-	;movf escala2, W
-	;movwf PORTA
-	;btfsc escala2, 5
-	;clrf escala2
+	movf escala2, W
+	btfsc escala2, 5
+	clrf escala2
 
 	movf PORTC, W
 	movwf escala1
 	incf escala1, F
+	; Termina la zona crítica
+	bsf INTCON, TMR0IE
 	return
 
 interrupcion:
@@ -106,5 +119,17 @@ interrupcion:
 final_interrupcion:
 	call LIBTIMER0__post_interrupt
 	retfie
+
+retardo_10ms:
+    movlw 0xed
+    movwf d1
+    movlw 0x41
+    movwf d2
+retardo_10ms_0
+    decfsz d1, 1
+    goto retardo_10ms_0
+    decfsz d2, 1
+    goto retardo_10ms_0
+    return
 
   end

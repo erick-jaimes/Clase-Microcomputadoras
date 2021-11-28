@@ -24,7 +24,6 @@ LIBTIMER0__DIR_VARS EQU 0x70
 	CBLOCK LIBTIMER0__DIR_VARS
 		LIBTIMER0__W_TEMP
 		LIBTIMER0__STATUS_TEMP
-		LIBTIMER0__TMR0
 	ENDC
 
 	; Si no se define el preescalador antes de incluir este archivo, por defecto
