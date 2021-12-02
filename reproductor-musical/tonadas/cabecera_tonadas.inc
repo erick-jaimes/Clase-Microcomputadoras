@@ -52,7 +52,7 @@ TONADA__ir_banco_auxiliares MACRO
   ENDM
 
 TONADA__configurar:
-	TONADA__ir_banco_auxiliares()
+	TONADA__ir_banco_auxiliares
 
 	clrf (TONADA__zero & 0x3F)
 	return

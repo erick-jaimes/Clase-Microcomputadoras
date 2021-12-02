@@ -17,29 +17,29 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-	IFNDEF LIBTIMER0__DIR_VARS
-LIBTIMER0__DIR_VARS EQU 0x70
+	IFNDEF TIMER0__DIR_VARS
+TIMER0__DIR_VARS EQU 0x70
 	ENDIF
 
-	CBLOCK LIBTIMER0__DIR_VARS
-		LIBTIMER0__W_TEMP
-		LIBTIMER0__STATUS_TEMP
+	CBLOCK TIMER0__DIR_VARS
+		TIMER0__W_TEMP
+		TIMER0__STATUS_TEMP
 	ENDC
 
 	; Si no se define el preescalador antes de incluir este archivo, por defecto
 	; PS<2:0> valen 111 (preescala 256)
-	IFNDEF LIBTIMER0__PREESCALADOR
-LIBTIMER0__PREESCALADOR B'111'
+	IFNDEF TIMER0__PREESCALADOR
+TIMER0__PREESCALADOR EQU B'111'
 	ENDIF
 
 	; Si no se define T0CS, por defecto vale 0 (reloj interno)
-	IFNDEF LIBTIMER0_TOCS
-LIBTIMER0_TOCS EQU B'0'
+	IFNDEF TIMER0_TOCS
+TIMER0_TOCS EQU B'0'
 	ENDIF
 
 	; Si no se define el valor para poner en TMR0, por defecto vale 0
-	IFNDEF LIBTIMER0_TMR
-LIBTIMER0_TMR EQU B'0'
+	IFNDEF TIMER0__TMR
+TIMER0__TMR EQU B'0'
 	ENDIF
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -49,7 +49,7 @@ LIBTIMER0_TMR EQU B'0'
 ;---------------------------------------
 ; Habilita la interrupción por timer 0 y establece los valores que controlan
 ; el tiempo que tardará en lanzar su primer interrupción
-LIBTIMER0__configurar:
+TIMER0__configurar:
 	bcf STATUS, RP1
 	bsf STATUS, RP0 ; Banco 1
 
@@ -57,27 +57,27 @@ LIBTIMER0__configurar:
 	; 5   T0CS  - Requiere un 0 para usar el relog interno
 	; 3   PSA   - 0 para asignar el preescalador al timer0
 	; 2:0 PS2:0 - 7 Valor del preescalado 256
-	movlw (LIBTIMER0__PREESCALADOR | (LIBTIMER0_TOCS << 5))
+	movlw (TIMER0__PREESCALADOR | (TIMER0_TOCS << 5))
 	movwf (OPTION_REG & 0x7F)
 
 	; Configurar las interrupciones. INTCON está en todos los bancos
 	bsf INTCON, TMR0IE ; Interrupción del timer 0
-	bsf INTCON, GIE    ; Habilitador global de interrupción
+	;bsf INTCON, GIE    ; Habilitador global de interrupción
 
 	; Establecemos el valor del timer0/contador
 	bcf STATUS, RP0 ; Banco 0
-	movlw LIBTIMER0_TMR
+	movlw TIMER0__TMR
 	movwf TMR0
 	return
 
 ;---------------------------------------
 ; Rutina para usarse dentro de la rutina de atención a interrupción del
 ; timer 0. Guarda el estado del programa para que se recupere luego
-LIBTIMER0__pre_interrupt:
-	movwf LIBTIMER0__W_TEMP			; Guarda W
+TIMER0__pre_interrupt:
+	movwf TIMER0__W_TEMP			; Guarda W
 	swapf STATUS, W					; Para copiar, pero sin alterar banderas
 	clrf STATUS						; Banco 0
-	movwf LIBTIMER0__STATUS_TEMP	; Guarda STATUS (swapped)
+	movwf TIMER0__STATUS_TEMP	; Guarda STATUS (swapped)
 	return
 
 ;---------------------------------------
@@ -85,16 +85,16 @@ LIBTIMER0__pre_interrupt:
 ; timer 0. Devuelve el valor configurado a TMR0 para que las próximas
 ; interrupciones pasen tras el mismo tiempo y también recupera el estado
 ; del programa que guardamos en el preámbulo.
-LIBTIMER0__post_interrupt:
+TIMER0__post_interrupt:
 	bcf STATUS, RP1
 	bcf STATUS, RP0 ; Banco 0
 
-	movlw LIBTIMER0_TMR
+	movlw TIMER0__TMR
 	movwf TMR0
 
-	swapf LIBTIMER0__STATUS_TEMP, W
+	swapf TIMER0__STATUS_TEMP, W
 	movwf STATUS
 
-	swapf LIBTIMER0__W_TEMP, F
-	swapf LIBTIMER0__W_TEMP, W
+	swapf TIMER0__W_TEMP, F
+	swapf TIMER0__W_TEMP, W
 	return

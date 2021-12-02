@@ -69,6 +69,9 @@ leer_tabla:
 	movf contador, W
 	EEPROM__ir_banco_auxiliares
 	movwf EEPROM__dir
+
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
 	
 	subwf tope, W
 	btfsc STATUS, Z

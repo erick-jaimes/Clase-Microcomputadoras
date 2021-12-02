@@ -53,7 +53,7 @@ CADENAS__ir_banco_auxiliares MACRO
   ENDM
 
 CADENAS__configurar:
-	CADENAS__ir_banco_auxiliares()
+	CADENAS__ir_banco_auxiliares
 
 	clrf (CADENAS__zero & 0x3F)
 	return
@@ -63,7 +63,7 @@ CADENAS__configurar:
 ; en la memoria programa
 CADENAS__label_num = 0
 CADENAS__transmitir MACRO tabla
-	CADENAS__ir_banco_auxiliares()
+	CADENAS__ir_banco_auxiliares
 	clrf (CADENAS__indice & 0x3F)
 
 CADENAS__ciclo_transmitir#v(CADENAS__label_num)
@@ -77,7 +77,7 @@ CADENAS__ciclo_transmitir#v(CADENAS__label_num)
 
 	call SERIAL__transmitir_byte ; Transmite
 
-	CADENAS__ir_banco_auxiliares()
+	CADENAS__ir_banco_auxiliares
 	incf (CADENAS__indice & 0x3F), F
 	goto CADENAS__ciclo_transmitir#v(CADENAS__label_num)
 

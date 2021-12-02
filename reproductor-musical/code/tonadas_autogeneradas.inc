@@ -52,39 +52,68 @@ TONADA__ir_banco_auxiliares MACRO
   ENDM
 
 TONADA__configurar:
-	TONADA__ir_banco_auxiliares()
+	TONADA__ir_banco_auxiliares
 
 	clrf (TONADA__zero & 0x3F)
 	return
 
 
-tetris:
+martinillo:
     bcf STATUS, RP1
     bcf STATUS, RP0 ; Banco 0
 
-    addlw tonada0__table
-    movwf (TONADA__temp & 0x3F)
-    rlf (TONADA__zero & 0x3F), W
+    addlw LOW(tonada0__table)
+    movwf (TONADA__temp & 0x7F)
+    rlf (TONADA__zero & 0x7F), W
     addlw HIGH(tonada0__table)
     movwf PCLATH
-    movf (TONADA__temp & 0x3F), W
+    movf (TONADA__temp & 0x7F), W
     movwf PCL
 tonada0__table
-    DT 0X6, "tetris", 0XC6, 0X62, 0X2B, 0XE1, 0X15, 0X21, 0X15, 0X42, 0X2B, 0X21
-    DT 0X15, 0XE1, 0X15, 0XC2, 0X2B, 0XC1, 0X15, 0X21, 0X15, 0X62, 0X2B, 0X41
-    DT 0X15, 0X21, 0X15, 0XE3, 0X41, 0X21, 0X15, 0X42, 0X2B, 0X62, 0X2B, 0X22
-    DT 0X2B, 0XC2, 0X2B, 0XC1, 0X15, 0XC2, 0X2B, 0XE1, 0X15, 0X21, 0X15, 0X43
-    DT 0X41, 0X81, 0X15, 0XC2, 0X2B, 0XA1, 0X15, 0X81, 0X15, 0X63, 0X41, 0X21
-    DT 0X15, 0X62, 0X2B, 0X41, 0X15, 0X21, 0X15, 0XE2, 0X2B, 0XE1, 0X15, 0X21
-    DT 0X15, 0X42, 0X2B, 0X62, 0X2B, 0X22, 0X2B, 0XC2, 0X2B, 0XC2, 0X2B, 0X2
-    DT 0X2B, 0X62, 0X2B, 0XE1, 0X15, 0X21, 0X15, 0X42, 0X2B, 0X21, 0X15, 0XE1
-    DT 0X15, 0XC2, 0X2B, 0XC1, 0X15, 0X21, 0X15, 0X62, 0X2B, 0X41, 0X15, 0X21
-    DT 0X15, 0XE3, 0X41, 0X21, 0X15, 0X42, 0X2B, 0X62, 0X2B, 0X22, 0X2B, 0XC2
-    DT 0X2B, 0XC1, 0X15, 0XC2, 0X2B, 0XE1, 0X15, 0X21, 0X15, 0X43, 0X41, 0X81
-    DT 0X15, 0XC2, 0X2B, 0XA1, 0X15, 0X81, 0X15, 0X63, 0X41, 0X21, 0X15, 0X62
-    DT 0X2B, 0X41, 0X15, 0X21, 0X15, 0XE2, 0X2B, 0XE1, 0X15, 0X21, 0X15, 0X42
-    DT 0X2B, 0X62, 0X2B, 0X22, 0X2B, 0XC2, 0X2B, 0XC2, 0X2B, 0X2, 0X2B, 0X64
-    DT 0X57, 0X24, 0X57, 0X44, 0X57, 0XE4, 0X57, 0X24, 0X57, 0XC4, 0X57, 0XA4
-    DT 0X57, 0XE2, 0X2B, 0X1, 0X15, 0X64, 0X57, 0X24, 0X57, 0X44, 0X57, 0XE4
-    DT 0X57, 0X22, 0X2B, 0X62, 0X2B, 0XC4, 0X57, 0XA4, 0X57
+    DT 0XA, "martinillo", 0X40, 0X2, 0X2B, 0X22, 0X2B, 0X42, 0X2B, 0X2, 0X2B
+    DT 0X2, 0X2B, 0X22, 0X2B, 0X42, 0X2B, 0X2, 0X2B, 0X42, 0X2B, 0X62, 0X2B
+    DT 0X84, 0X57, 0X42, 0X2B, 0X62, 0X2B, 0X84, 0X57, 0X81, 0X15, 0XA1, 0X15
+    DT 0X81, 0X15, 0X61, 0X15, 0X42, 0X2B, 0X2, 0X2B, 0X81, 0X15, 0XA1, 0X15
+    DT 0X81, 0X15, 0X61, 0X15, 0X42, 0X2B, 0X2, 0X2B, 0X22, 0X2B, 0X82, 0X2B
+    DT 0X4, 0X57, 0X22, 0X2B, 0X82, 0X2B, 0X4, 0X57, 0x0
+
+
+short_mario_bros:
+    bcf STATUS, RP1
+    bcf STATUS, RP0 ; Banco 0
+
+    addlw LOW(tonada1__table)
+    movwf (TONADA__temp & 0x7F)
+    rlf (TONADA__zero & 0x7F), W
+    addlw HIGH(tonada1__table)
+    movwf PCLATH
+    movf (TONADA__temp & 0x7F), W
+    movwf PCL
+tonada1__table
+    DT 0X10, "short_mario_bros", 0X3C, 0X41, 0X15, 0X41, 0X15, 0XE1, 0X15, 0X41
+    DT 0X15, 0XE1, 0X15, 0X1, 0X15, 0X41, 0X15, 0X82, 0X2B, 0XE2, 0X2B, 0X81
+    DT 0X15, 0XE2, 0X2B, 0X3, 0X41, 0X81, 0X15, 0XE2, 0X2B, 0X43, 0X41, 0XA2
+    DT 0X2B, 0XC2, 0X2B, 0XA1, 0X15, 0XA2, 0X2B, 0X81, 0XA0, 0X41, 0XA0, 0X81
+    DT 0XA0, 0XA2, 0X2B, 0X61, 0X15, 0X81, 0X15, 0XE1, 0X15, 0X42, 0X2B, 0X1
+    DT 0X15, 0X21, 0X15, 0XC3, 0X41, 0x0
+
+
+short_merry_christmas:
+    bcf STATUS, RP1
+    bcf STATUS, RP0 ; Banco 0
+
+    addlw LOW(tonada2__table)
+    movwf (TONADA__temp & 0x7F)
+    rlf (TONADA__zero & 0x7F), W
+    addlw HIGH(tonada2__table)
+    movwf PCLATH
+    movf (TONADA__temp & 0x7F), W
+    movwf PCL
+tonada2__table
+    DT 0X15, "short_merry_christmas", 0X3A, 0X2, 0X2B, 0X62, 0X2B, 0X61, 0X15
+    DT 0X81, 0X15, 0X61, 0X15, 0X41, 0X15, 0X22, 0X2B, 0X22, 0X2B, 0X22, 0X2B
+    DT 0X82, 0X2B, 0X81, 0X15, 0XA1, 0X15, 0X81, 0X15, 0X61, 0X15, 0X42, 0X2B
+    DT 0X2, 0X2B, 0X2, 0X2B, 0XA2, 0X2B, 0XA1, 0X15, 0XA1, 0X15, 0XA1, 0X15
+    DT 0X81, 0X15, 0X62, 0X2B, 0X22, 0X2B, 0X1, 0X15, 0X1, 0X15, 0X22, 0X2B
+    DT 0X82, 0X2B, 0X42, 0X2B, 0x0
 

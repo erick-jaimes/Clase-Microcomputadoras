@@ -74,23 +74,32 @@ NOTASMUSIC__ir_banco_auxiliares MACRO
 ;  W = 6  ====> Si
 ;  W = 7  ====> Ninguna nota
 NOTASMUSIC__sonarW
+	NOTASMUSIC__ir_banco_auxiliares
+
+	; 7 significa ningún sonido, por lo que salimos de la función si lo recibimos
+	andlw B'111'
+	movwf (NOTASMUSIC__nota & 0x7F)
+
+	movlw 7
+	subwf (NOTASMUSIC__nota & 0x7F), W
+
+	btfsc STATUS, Z
+	return
+
+	; Multiplicamos el valor de W por 2, ya que cada
+	; opción del salto indexado está compuesta por dos
+	; instrucciones. Guardamos el resultado en F para
+	; usarlo luego, aunque también lo requerimos en W
+	movf (NOTASMUSIC__nota & 0x7F), W
+	addwf (NOTASMUSIC__nota & 0x7F), F
+
 	bcf STATUS, RP1
 	bcf STATUS, RP0 ; Banco 0
-
+	
 	; Primero se manda un valor alto
 	bsf NOTASMUSIC__SALIDA_SPEAKER
 
 	; El retardo se elige mediante un salto indexado.
-	; Limitamos los valores de W para el caso en que se
-	; reciba algo mayor a 7
-	NOTASMUSIC__ir_banco_auxiliares
-	andlw B'111'
-	movwf (NOTASMUSIC__nota & 0x7F) ; Guardamos el valor de W
-	; Multiplicamos el valor de W por 2, ya que cada
-	; opción del salto indexado está compuesta por dos
-	; instrucciones. Guardamos el resultado para en F para
-	; usarlo luego, aunque también lo requerimos en W
-	addwf (NOTASMUSIC__nota & 0x7F), F
 	movf (NOTASMUSIC__nota & 0x7F), W
 
 	addwf PCL, F
@@ -144,8 +153,86 @@ NOTASMUSIC__salir
     bcf STATUS, RP0
 	return
 
+;---------------------------------------
+; Hace sonar la nota DO4
+NOTASMUSIC__sonarDO4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_do4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_do4
+    return
+
+;---------------------------------------
+; Hace sonar la nota RE4
+NOTASMUSIC__sonarRE4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_re4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_re4
+    return
+
+
+;---------------------------------------
+; Hace sonar la nota MI4
+NOTASMUSIC__sonarMI4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_mi4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_mi4
+    return
+
+;---------------------------------------
+; Hace sonar la nota FA4
+NOTASMUSIC__sonarFA4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_fa4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_fa4
+    return
+
+;---------------------------------------
+; Hace sonar la nota SOL4
+NOTASMUSIC__sonarSOL4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_sol4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_sol4
+    return
+
+;---------------------------------------
+; Hace sonar la nota LA4
+NOTASMUSIC__sonarLA4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_la4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_la4
+    return
+
+;---------------------------------------
+; Hace sonar la nota SI4
+NOTASMUSIC__sonarSI4
+	bcf STATUS, RP1
+	bcf STATUS, RP0 ; Banco 0
+	bsf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_si4
+    bcf NOTASMUSIC__SALIDA_SPEAKER
+    call NOTASMUSIC__retardo_si4
+    return
+
 ; Frecuencias necesarias para los sonidos de la octava central
-; Las frecuencias de la octava central se obtuvieron de 
+; Las frecuencias de la octava central se obtuvieron de
 ; https://microsonus.com/biblioteca-musical/microseries/fundamentos-del-sonido/fundamentos-notas-frecuencias/
 ;
 ; Su valor aproximado es:

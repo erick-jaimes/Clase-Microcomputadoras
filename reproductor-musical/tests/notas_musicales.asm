@@ -9,16 +9,19 @@
   org 5
 
   #DEFINE DEPURAR_POR_SEPARADO
+  #DEFINE NOTASMUSIC__SALIDA_SPEAKER PORTC, 0
+NOTASMUSIC__DIR_VARS EQU 0x20
   include "../code/notas_musicales.inc"
 
-contador EQU 0x20
-nota     EQU 0x21
+contador EQU 0x30
+nota     EQU 0x31
 
 ; Vamos a mandar la señal correspondiente
 inicio:
 	bsf STATUS, RP0 ; Banco 1
 
 	clrf TRISB & 0x7F
+	clrf TRISC & 0x7F
 
 	bcf STATUS, RP0 ; Banco 0
 	clrf contador

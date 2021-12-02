@@ -24,7 +24,7 @@ inicio:
 	call SERIAL__configurar
 	call CADENAS__configurar
 
-	CADENAS__transmitir(str_prueba_serial)
+	CADENAS__transmitir str_prueba_serial
 
 	movlw .32
 	movwf contador
@@ -41,7 +41,7 @@ set_caracteres:
 	sublw 0xF
 	btfsc STATUS, Z
 	call SERIAL__salto_linea
-	
+
 	incfsz contador, F
 	goto set_caracteres
 
@@ -66,7 +66,7 @@ descargando:
 	decfsz contador, F
 	goto descargando
 
-	CADENAS__transmitir(str_prueba_caracteres_especiales)
+	CADENAS__transmitir str_prueba_caracteres_especiales
 
 	call SERIAL__recibir_byte
 	call SERIAL__nueva_pagina
@@ -98,5 +98,5 @@ retardo_0
 	 nop
 
 	 return
-	
+
   end

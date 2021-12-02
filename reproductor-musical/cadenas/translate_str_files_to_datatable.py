@@ -26,8 +26,20 @@ class CommaSeparatedDataSender():
 
     def send_data(self, data):
         if data[0] == '"':
-            self._transmited_bytes += len(data) - 2
+            # Las comillas inicialies/final no se consideran parte de los datos,
+            # por lo que se eliminan de la cuenta
+            # Por otra parte, los datos pueden traer comillas intermedias
+            # escapadas con \. Visualmente aparecen como dos caracteres, pero
+            # siguen siendo uno por lo que también se reduce uno a la cuenta
+            # por cada comilla intermedia que aparezca.
+            # En resumen, por cada comilla inicial/final o intermedia que se
+            # encuentre en la cadena, restamos un byte a la longitud de los
+            # datos para obtener el número de bytes que nos importan
+
+            self._transmited_bytes += len(data) - data.count('"')
         else:
+            # Las cadenas que no empiezan por comillas deben representar
+            # un solo byte en formato hexadecimal. Ej: 0x27, 0xFF
             self._transmited_bytes += 1
 
         if self._line_length + len(data) + len(', ') > 80:
@@ -55,12 +67,12 @@ def generate_table(index, str_filename, dest_file):
     bcf STATUS, RP1
     bcf STATUS, RP0 ; Banco 0
 
-    addlw str{index}__table
-    movwf (CADENAS__temp & 0x3F)
-    rlf (CADENAS__zero & 0x3F), W
+    addlw LOW(str{index}__table)
+    movwf (CADENAS__temp & 0x7F)
+    rlf (CADENAS__zero & 0x7F), W
     addlw HIGH(str{index}__table)
     movwf PCLATH
-    movf (CADENAS__temp & 0x3F), W
+    movf (CADENAS__temp & 0x7F), W
     movwf PCL
 str{index}__table''', file=dest_file)
 
@@ -77,7 +89,8 @@ str{index}__table''', file=dest_file)
                 buffer_ascii_string += chr(char_code)
             else:
                 if buffer_ascii_string:
-                    sender.send_data(f'"{buffer_ascii_string}"')
+                    escaped_string = buffer_ascii_string.replace(r'"', r'\"')
+                    sender.send_data(f'"{escaped_string}"')
                     buffer_ascii_string = ''
 
                 if char_code == 10:
@@ -88,7 +101,7 @@ str{index}__table''', file=dest_file)
         if buffer_ascii_string:
             sender.send_data(f'"{buffer_ascii_string}"')
 
-        sender.send_data('0')
+        sender.send_data('0x0')
         print('\n', file=dest_file)
 
         print('bytes in table ', str_filename, ': ', sender._transmited_bytes, sep='')

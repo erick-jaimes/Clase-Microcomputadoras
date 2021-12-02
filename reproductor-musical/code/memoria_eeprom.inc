@@ -16,11 +16,6 @@ EEPROM__SIZE EQU .256
 ; EQU (según sea el caso) antes de incluir este archivo.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; El sonido sale por PORTB<0>
-	IFNDEF NOTASMUSIC__SALIDA_SPEAKER
-		#DEFINE NOTASMUSIC__SALIDA_SPEAKER PORTB, 0
-	ENDIF
-
 ; Las variables EEPROM_dir y EEPROM__lena tienen direcciones a partir del valor
 ; especificado mediante un EQU, o a partir de 0x130 si dicha
 ; instrucción no se usa antes de este punto
@@ -35,6 +30,9 @@ EEPROM__DIR_VARS EQU 0x130
 		EEPROM__top			  ; Apuntador para escribir en la rutina EEPROM_write_byte_top
 		EEPROM__llena		  ; Se usa un solo bit, para indicar si se llenó la EEPROM
 		EEPROM__indice_tabla  ; Se usa al transmitir cadenas guardadas en tablas
+
+		EEPROM__SAVE_INTCON	  ; Para guardar INTCON y reponerlo luego
+		EEPROM__SAVE_PCLATH
 	ENDC
 
 EEPROM__ir_banco_auxiliares MACRO
@@ -80,8 +78,8 @@ EEPROM__configurar:
 ; guardada en EEPROM_dir
 EEPROM__write_byte:
 	; Esperando en el banco 3 a que podamos escribir
-	BSF STATUS, RP0
-	BSF STATUS, RP1 ; B3
+	bsf STATUS, RP0
+	bsf STATUS, RP1 ; B3
 EEPROM__wait_prev_write:
 	btfsc (EECON1 & 0x7F), WR
 	goto EEPROM__wait_prev_write
@@ -107,6 +105,15 @@ EEPROM__wait_prev_write:
 	bsf (EECON1 & 0x7F), WREN  ; Habilita escritura
 
 	; Deshabilita interrupciones temporalmente
+	swapf INTCON, W
+	
+	EEPROM__ir_banco_auxiliares
+	movwf EEPROM__SAVE_INTCON
+	
+
+	bsf STATUS, RP1
+	bsf STATUS, RP0 ; B3
+
 	bcf INTCON, GIE
 
 	; Escribiendo dos valores (aparentemente mágicos) a EECON2
@@ -115,14 +122,25 @@ EEPROM__wait_prev_write:
 	movwf (EECON2 & 0x7F)
 	movlw 0xAA
 	movwf (EECON2 & 0x7F)
-	
+
 	; Comenzar operación de escritura
 	bsf (EECON1 & 0x7F), WR
-	; Volver a habilitar interrupciones
-	bsf INTCON, GIE
+
+	; Volver a habilitar interrupciones si es que lo estaban previamente
+	EEPROM__ir_banco_auxiliares
+	swapf EEPROM__SAVE_INTCON, W
+
+	bsf STATUS, RP1
+	bsf STATUS, RP0 ; B3
+
+	movwf INTCON
 
 	; Deshabilitar escritura
 	bcf (EECON1 & 0x7F), WREN
+
+	; Volver al banco 0
+	bcf STATUS, RP1
+	bcf STATUS, RP0
 	return
 
 ;---------------------------------------
@@ -176,9 +194,9 @@ EEPROM__wait_read:
 	bcf STATUS, RP0 ; Banco 2
 
 	movwf (EEADR & 0x7F)    ; Dirección de donde leemos
-	
+
 	bsf STATUS, RP0 ; Banco 3
-	
+
 	bcf (EECON1 & 0x7F), EEPGD ; Apunta a la memoria dato
 	bsf (EECON1 & 0x7F), RD    ; Inicia operación de lectura
 
@@ -196,6 +214,8 @@ EEPROM__wait_read:
 EEPROM__label_num = 0
 EEPROM__guardar_cadena MACRO tabla
 	EEPROM__ir_banco_auxiliares
+	movf PCLATH, W
+	movwf (EEPROM__SAVE_PCLATH & 0x7F)
 	clrf (EEPROM__indice_tabla & 0x7F)
 
 EEPROM__ciclo_transmitir#v(EEPROM__label_num)
@@ -216,6 +236,9 @@ EEPROM__ciclo_transmitir#v(EEPROM__label_num)
 EEPROM__terminar#v(EEPROM__label_num)
 	bcf STATUS, RP1
 	bcf STATUS, RP0
+
+	movf (EEPROM__SAVE_PCLATH & 0x7F), W
+	movwf PCLATH
 EEPROM__label_num++
 
   ENDM
