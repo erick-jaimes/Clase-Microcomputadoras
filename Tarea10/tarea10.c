@@ -27,7 +27,7 @@ void main()
    
    /* Se configura el módulo CCP1 como PWM para controlar la intensidad de la lámpara */
    setup_ccp1(CCP_PWM);
-   setup_timer_2(T2_DIV_BY_16,155,1);
+   setup_timer_2(T2_DIV_BY_16, 155, 1);
    // set_pwm1_duty(312);
    
    for (;;)
